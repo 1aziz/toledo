@@ -1,0 +1,56 @@
+---
+version: 3
+
+dotenv: [".env"]
+
+tasks:
+  default:
+    desc: List all tasks
+    cmds:
+      - task -a
+
+  bootstrap:
+    desc: Bootstrap a kind cluster
+    cmds:
+      - task: delete-cluster
+      - task: create-cluster
+      - task: bootstrap-flux
+
+  create-cluster:
+    desc: Create a kind cluster
+    cmds:
+      - kind create cluster --config kind-cluster-config.yaml --name toledo-local
+      - kubectl cluster-info --context kind-toledo-local
+
+  bootstrap-flux:
+    desc: Bootstrap Flux for GitHub
+    deps: [install:cilium, install:ingress-nginx, install:flux]
+    cmds:
+      - |
+        flux bootstrap --force github \
+        --owner=$GITHUB_USER \
+        --repository=toledo \
+        --branch=main \
+        --path=./k8s/clusters/kind \
+        --personal
+
+  install:cilium:
+    desc: Install Cilium
+    cmds:
+      - helm repo add cilium https://helm.cilium.io/ --force-update
+      - helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system
+
+  install:ingress-nginx:
+    desc: Install Ingress-Nginx
+    cmds:
+      - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
+  install:flux:
+    desc: Install Flux
+    cmds:
+      - kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
+
+  delete-cluster:
+    desc: Delete a kind cluster
+    cmds:
+      - kind delete cluster --name toledo-local
