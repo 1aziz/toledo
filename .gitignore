@@ -1,1 +1,30 @@
-.env
+# IDE specific folders
+.vscode/
+# Add more specific patterns for other IDEs if needed
+
+# Build artifacts
+bin/
+build/
+
+# Test data/outputs
+test_data/
+*.test.log  # Adjust based on your testing framework
+
+# Environment specific configurations
+.env*
+
+# Go module cache
+vendor/
+
+# Generated files (if applicable)
+*.log  # Example, adjust based on your generated files
+
+# Cache directories (if applicable)
+.npm  # Example, adjust based on your tools
+
+# Temporary files
+*.tmp
+
+# OS specific hidden files
+DS_Store
+Thumbs.db  # For Windows

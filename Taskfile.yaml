@@ -16,6 +16,16 @@ tasks:
       - task: create-cluster
       - task: bootstrap-flux
 
+  hola-toledo:build-publish:
+    dir: ./apps/hola-toledo
+    cmds:
+      - task build-and-publish
+
+  hola-toledo:run:
+    dir: ./apps/hola-toledo
+    cmds:
+      - task run
+
   create-cluster:
     desc: Create a kind cluster
     cmds:
@@ -28,11 +38,11 @@ tasks:
     cmds:
       - |
         flux bootstrap --force github \
-        --owner=$GITHUB_USER \
-        --repository=toledo \
-        --branch=main \
-        --path=./k8s/clusters/kind \
-        --personal
+          --owner=$GITHUB_USER \
+          --repository=toledo \
+          --branch=main \
+          --path=./k8s/clusters/kind \
+          --personal
 
   install:cilium:
     desc: Install Cilium

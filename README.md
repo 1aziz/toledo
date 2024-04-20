@@ -1,10 +1,74 @@
 # Toledo
 
-This repository provides a simple GitOps boilerplate to help you learn how to configure resources on Kubernetes using GitOps practices. It includes sample Kubernetes configs and dummy applications to experiment with certain Cloud Native concepts and tools, including Cilium, Flux.
+This repository provides a simple GitOps boilerplate to help you get started with configuring resources on Kubernetes using GitOps practices. It includes sample Kubernetes configurations and a demo `halo-toledo` application to experiment with core Cloud Native concepts and tools, including:
 
-This playground is ideal for those who are new to GitOps (and Kubernetes networking) and want to explore its functionalities in a hands-on environment.
+- **Cilium**: Explore service mesh functionalities like service discovery and load balancing.
+- **Flux**: Learn how to use GitOps for automating deployments and managing your Kubernetes cluster configuration.
 
-## GitOps
+This playground is ideal for those who are new to GitOps and Kubernetes networking and want to explore these functionalities in a hands-on environment.
+
+In addition, in this repo, we're using/experimenting the following technologies:
+
+- **Dagger**: Defines reusable CI tasks, including building container images for our demo application.
+- **GitHub Actions**: Triggers and executes Dagger tasks within the CI/CD pipeline.
+- **Taskfile**: Defines tasks for bootstrapping Kubernetes clusters.
+
+By working through this repository, you'll gain practical experience with GitOps principles and essential Cloud Native tools.
+
+## Get started (local)
+
+### 1. Bootstrap cluster
+
+To setup and configure a local cluster, you'll first need to make sure you've installed [`Taskfile`](https://taskfile.dev/).
+
+Then, you can run the following command to bootstrap a new local cluster:
+
+```sh
+task bootstrap
+```
+
+The command above ensures `kind` ensures:
+
+1. `kind` and `helm` are installed on your machine.
+2. Creates a new Kind cluster using the configurations declared in `kind-cluster-config.yaml` in the repo.
+3. Installs Cilium and Flux controllers
+4. Boostraps GitOps to sync all the configs under `k8s` directory
+
+Once you've created and bootstrapped your cluster, you can start experimenting! Here's how:
+
+- **Explore the `halo-toledo` Demo App**: This sample application provides a starting point for understanding how to deploy applications using GitOps. Dive into its source code (`./halo-toledo/src`) and Kubernetes configurations (`./halo-toledo/deploy`) to see how it's structured and deployed.
+
+- **Bring Your Own Applications**: This repository is designed to be extended! You can fork it and add your own applications. To do this:
+  - Create a new directory inside the `./apps` folder, for example: `./apps/my-new-app`
+  - Inside your new app directory, create two subfolders: - `src`: This folder will contain your application's source code. - `deploy`: This folder will hold your Kubernetes deployment configurations (e.g., Deployments, Services).
+    Benefits of Customization:
+
+By adding your own applications, you can:
+
+- Practice deploying and managing real-world applications with GitOps.
+- Experiment with different configurations and tools within the GitOps workflow.
+- Tailor the playground to your specific learning goals.
+
+## CI & CD
+
+### CI
+
+We use [Dagger](https://dagger.io) to test and build container images for all applications maintained in this repo.
+
+A GitHub Actions workload is configured to run Dagger to build new images each time an application directory has been modifed.
+Similarly, you can run any Dagger function _locally_ to build, test or package your app:\_
+
+```sh
+dagger call build-and-publish --app=$APP_NAME
+```
+
+Alternatively, you can use the following task:
+
+```sh
+task build-and-publish APP_NAME=$APP_NAME
+```
+
+### GitOps
 
 We're using Flux CD (https://fluxcd.io/) to sync the following two categories of resources on Kubernetes:
 
@@ -12,27 +76,3 @@ We're using Flux CD (https://fluxcd.io/) to sync the following two categories of
 2. **Apps**: All configs related to our actual workloads.
 
 You can find these configs under `./k8s`.
-
-## Get started (local)
-
-### 1. Create cluster
-
-**Prerequisites:** Make sure you have `kind` installed before proceeding. You can find installation instructions on the kind website (https://kind.io).
-
-To start, create a kind cluster with the configs stored in the `kind-cluster-config.yaml` file:
-
-```sh
-kind create cluster --config kind-cluster-config.yaml --name toledo-local
-```
-
-The command above creates a cluster with 3 worker nodes and **no** CNI plugin installed.
-
-### 2. Install Cilium
-
-Once the cluster is created, we need to [install Cilium using Helm](https://docs.cilium.io/en/stable/installation/k8s-install-helm/) (to be later managed using Flux CD).
-
-### 3. Bootstrap Flux CD
-
-You can customize the Flux CD bootstrap process based on your specific needs by following the full instructions provided by Flux CD (https://fluxcd.io/flux/cmd/flux_bootstrap/).
-
-Once the cluster has been created and bootstrapepd, you can experiment with the included dummy applications or add additional infrastructure resources.

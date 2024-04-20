@@ -1,0 +1,23 @@
+---
+version: 3
+
+dotenv: [".env"]
+
+vars:
+  APP: hola-toledo
+
+tasks:
+  default:
+    desc: List all tasks
+    cmds:
+      - task -a
+
+  build-and-publish:
+    desc: Build and publish a container image
+    cmds:
+      - dagger call build-and-publish  --app-name="{{.APP}}" --build-src=./src
+
+  run:
+    desc: Run the application image
+    cmds:
+      - dagger call run --app-name="{{.APP}}" --build-src=./src up
