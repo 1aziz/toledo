@@ -37,12 +37,13 @@ tasks:
     deps: [install:cilium, install:ingress-nginx, install:flux]
     cmds:
       - |
+        export GITHUB_TOKEN=$GH_TOKEN && \
         flux bootstrap --force github \
           --owner=$GH_USER \
           --repository=toledo \
           --branch=main \
           --path=./k8s/clusters/kind \
-          --token $GH_TOKEN \
+          --token=$GH_TOKEN \
           --personal
 
   install:cilium:
