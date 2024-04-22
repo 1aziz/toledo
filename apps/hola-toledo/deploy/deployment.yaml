@@ -1,0 +1,20 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: hola
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hola
+  template:
+    metadata:
+      labels:
+        app: hola
+    spec:
+      containers:
+        - name: hola
+          image: ghcr.io/1aziz/hola-toledo:latest
+          ports:
+            - containerPort: 8080

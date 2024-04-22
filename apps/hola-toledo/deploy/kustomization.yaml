@@ -1,0 +1,12 @@
+---
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+commonLabels:
+  app: hola
+  project: toledo
+
+resources:
+  - deployment.yaml
+  - ingress.yaml
+  - service.yaml

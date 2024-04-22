@@ -12,6 +12,7 @@ test_data/
 
 # Environment specific configurations
 .env*
+secrets
 
 # Go module cache
 vendor/

@@ -17,20 +17,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"math"
-	"math/rand"
 )
 
 type Toledo struct{}
 
 // Builds and publishes a container image from a given source directory.
-func (m *Toledo) BuildAndPublish(ctx context.Context, buildSrc *Directory, appName string) (string, error) {
+func (m *Toledo) BuildAndPublish(ctx context.Context, appName, crUser, crRepo string, crToken *Secret, buildSrc *Directory) (string, error) {
 	ctr := dag.Wolfi().Container()
-
 	return dag.
 		Golang().
 		BuildContainer(GolangBuildContainerOpts{Source: buildSrc, Base: ctr}).
-		Publish(ctx, fmt.Sprintf("ttl.sh/%s-%.0f", appName, math.Floor(rand.Float64()*10000000))) //#nosec
+		WithRegistryAuth(crRepo, crUser, crToken).
+		Publish(ctx, crRepo+"/"+appName)
 }
 
 // Builds and publishes a container image from a given source directory.

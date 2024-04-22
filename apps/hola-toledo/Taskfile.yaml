@@ -15,7 +15,7 @@ tasks:
   build-and-publish:
     desc: Build and publish a container image
     cmds:
-      - dagger call build-and-publish  --app-name="{{.APP}}" --build-src=./src
+      - dagger call build-and-publish --app-name="{{.APP}}" --cr-repo={{.GH_REPO}} --cr-user={{.GH_USER}} --cr-token=env:GH_TOKEN --build-src=./src
 
   run:
     desc: Run the application image

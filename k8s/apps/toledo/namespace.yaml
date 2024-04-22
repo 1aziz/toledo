@@ -1,0 +1,7 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: toledo
+  labels:
+    toolkit.fluxcd.io/tenant: sre-team

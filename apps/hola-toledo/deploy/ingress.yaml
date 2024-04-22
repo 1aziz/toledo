@@ -1,0 +1,17 @@
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: hola
+spec:
+  rules:
+    - host: hola-toledo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hola
+                port:
+                  number: 8080
