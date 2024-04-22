@@ -6,3 +6,4 @@ resources:
   - ingress-nginx.yaml
   - cilium.yaml
   - prometheus-stack.yaml
+  - sealed-secrets.yaml
