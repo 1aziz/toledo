@@ -34,8 +34,17 @@ tasks:
 
   bootstrap-flux:
     desc: Bootstrap Flux for GitHub
-    deps: [install:cilium, install:ingress-nginx, install:flux]
+    deps:
+      [
+        install:cilium,
+        install:ingress-nginx,
+        install:flux,
+        install:kyverno,
+        install:sealed-secret
+      ]
     cmds:
+      - task: configure-sealed-secrets
+      - task: create-regcred
       - |
         export GITHUB_TOKEN=$GH_TOKEN && \
         flux bootstrap --force github \
@@ -62,7 +71,37 @@ tasks:
     cmds:
       - kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
 
+  install:kyverno:
+    desc: Install Kyverno
+    cmds:
+      - kubectl apply -f https://github.com/kyverno/kyverno/releases/download/v1.10.0/install.yaml --server-side=true
+      - kubectl apply -f ./k8s/infrastructure/configs/regcred.clusterpolicy.kyverno.yaml
+
+  install:sealed-secret:
+    desc: Install Kyverno
+    cmds:
+      - helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+      - helm install sealed-secrets sealed-secrets/sealed-secrets --create-namespace --namespace sealed-secrets
+
   delete-cluster:
     desc: Delete a kind cluster
     cmds:
       - kind delete cluster --name toledo-local
+
+  create-regcred:
+    desc: Create a regcred secret
+    cmds:
+      - kubectl create secret docker-registry regcred --docker-server=$GH_REPO --docker-username=$GH_USER --docker-password=$GH_TOKEN --docker-email=$GH_EMAIL
+
+  configure-sealed-secrets:
+    desc: Configure Sealed Secrets
+    cmds:
+      - openssl req -x509 -days 365 -nodes -newkey rsa:4096 -keyout "{{.PRIVATEKEY}}" -out "{{.PUBLICKEY}}" -subj "/CN=sealed-secret/O=sealed-secret"
+      - kubectl -n "{{.NAMESPACE}}" create secret tls "{{.SECRETNAME}}" --cert="{{.PUBLICKEY}}" --key="{{.PRIVATEKEY}}"
+      - kubectl -n "{{.NAMESPACE}}" label secret "{{.SECRETNAME}}" sealedsecrets.bitnami.com/sealed-secrets-key=active
+      - kubectl -n "{{.NAMESPACE}}" delete pod -l app.kubernetes.io/name=sealed-secrets
+    vars:
+      PRIVATEKEY: secrets/mytls.key
+      PUBLICKEY: secrets/mytls.crt
+      NAMESPACE: sealed-secrets
+      SECRETNAME: mycustomkeys

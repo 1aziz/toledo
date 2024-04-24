@@ -11,5 +11,5 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./k8s/apps/toledo/halo
+  path: ./apps/hola-toledo/deploy
   prune: true
