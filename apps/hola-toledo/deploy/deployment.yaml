@@ -18,3 +18,5 @@ spec:
           image: ghcr.io/1aziz/hola-toledo:latest
           ports:
             - containerPort: 8080
+      imagePullSecrets:
+        - name: regcred
