@@ -13,11 +13,11 @@ tasks:
       - task -a
 
   build-and-publish:
-    desc: Build and publish a container image
+    desc: Publish a container image
     cmds:
-      - dagger call build-and-publish --app-name="{{.APP}}" --cr-repo={{.GH_REPO}} --cr-user={{.GH_USER}} --cr-token=env:GH_TOKEN --build-src=./src
+      - dagger call publish --username={{.GH_USER}} --password=env:GH_TOKEN --source=./src
 
   run:
-    desc: Run the application image
+    desc: Build and run the application image
     cmds:
-      - dagger call run --app-name="{{.APP}}" --build-src=./src up
+      - dagger call run --app-name=hola-toledo --build-src=./src as-service up

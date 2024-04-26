@@ -16,23 +16,14 @@ package main
 
 import (
 	"context"
+	"dagger/toledo/internal/dagger"
 	"fmt"
 )
 
 type Toledo struct{}
 
-// Builds and publishes a container image from a given source directory.
-func (m *Toledo) BuildAndPublish(ctx context.Context, appName, crUser, crRepo string, crToken *Secret, buildSrc *Directory) (string, error) {
-	ctr := dag.Wolfi().Container()
-	return dag.
-		Golang().
-		BuildContainer(GolangBuildContainerOpts{Source: buildSrc, Base: ctr}).
-		WithRegistryAuth(crRepo, crUser, crToken).
-		Publish(ctx, crRepo+"/"+appName)
-}
-
-// Builds and publishes a container image from a given source directory.
-func (m *Toledo) Run(ctx context.Context, buildSrc *Directory, appName string) *Service {
+// Builds a container image from a given source directory.
+func (m *Toledo) BuildContainer(ctx context.Context, buildSrc *Directory, appName string) (*Container, error) {
 	ctr := dag.Wolfi().Container()
 	appPath := fmt.Sprintf("/usr/local/bin/%s", appName)
 
@@ -40,6 +31,27 @@ func (m *Toledo) Run(ctx context.Context, buildSrc *Directory, appName string) *
 		Golang().
 		BuildContainer(GolangBuildContainerOpts{Source: buildSrc, Base: ctr}).
 		WithEntrypoint([]string{appPath}).
-		WithExposedPort(8080).
-		AsService()
+		WithExposedPort(8080), nil
+}
+
+// Publishes a container image to a registry.
+func (m *Toledo) Publish(
+	ctx context.Context,
+	source *dagger.Directory,
+	//+optional
+	//+default="ghcr.io"
+	registry string,
+	username string,
+	password *Secret,
+	//+optional
+	//+default="hola-toledo"
+	image string,
+) (string, error) {
+	ctr, err := m.BuildContainer(ctx, source, image)
+	if err != nil {
+		return "", err
+	}
+	return ctr.
+		WithRegistryAuth(registry, username, password).
+		Publish(ctx, fmt.Sprintf("%s/%s/%s", registry, username, image))
 }

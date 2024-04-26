@@ -1,0 +1,44 @@
+name: Build + publish hola-toledo
+
+on:
+  push:
+    branches:
+      - "main"
+    tags:
+      - "hola-toledo/v*"
+    path: "apps/hola-toledo/src/**"
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Git metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ github.actor }}/halo-toledo
+          tags: |
+            type=ref,event=branch
+            type=match,pattern=\d.\d.\d
+      - name: Publish image (Dagger)
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          args: publish --username=${{ github.actor }} --password=${{ secrets.GITHUB_TOKEN }} --source=./apps/halo-toledo/src --image=hola-toledo:${{ steps.meta.outputs.version }}
+          workdir: apps/hola-toledo
+          version: "0.10.2"
