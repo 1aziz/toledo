@@ -27,7 +27,6 @@ tasks:
     deps:
       [
         install:cilium,
-        install:ingress-nginx,
         install:flux,
         install:kyverno,
         install:sealed-secret,
@@ -50,11 +49,6 @@ tasks:
     cmds:
       - helm repo add cilium https://helm.cilium.io/ --force-update
       - helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system
-
-  install:ingress-nginx:
-    desc: Install Ingress-Nginx
-    cmds:
-      - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
   install:flux:
     desc: Install Flux
