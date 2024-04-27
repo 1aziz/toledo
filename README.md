@@ -9,8 +9,6 @@ This playground is ideal for those who are new to GitOps and Kubernetes networki
 
 In addition, in this repo, we're using/experimenting the following technologies:
 
-- **Dagger**: Defines reusable CI tasks, including building container images for our demo application.
-- **GitHub Actions**: Triggers and executes Dagger tasks within the CI/CD pipeline.
 - **Taskfile**: Defines tasks for bootstrapping Kubernetes clusters.
 
 By working through this repository, you'll gain practical experience with GitOps principles and essential Cloud Native tools.
@@ -49,26 +47,7 @@ By adding your own applications, you can:
 - Experiment with different configurations and tools within the GitOps workflow.
 - Tailor the playground to your specific learning goals.
 
-## CI & CD
-
-### CI
-
-We use [Dagger](https://dagger.io) to test and build container images for all applications maintained in this repo.
-
-A GitHub Actions workload is configured to run Dagger to build new images each time an application directory has been modifed.
-Similarly, you can run any Dagger function _locally_ to build, test or package your app:\_
-
-```sh
-dagger call build-and-publish --app=$APP_NAME
-```
-
-Alternatively, you can use the following task:
-
-```sh
-task build-and-publish APP_NAME=$APP_NAME
-```
-
-### GitOps
+## GitOps
 
 We're using Flux CD (https://fluxcd.io/) to sync the following two categories of resources on Kubernetes:
 

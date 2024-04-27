@@ -1,24 +1,26 @@
-name: Build + publish hola-toledo
+name: Create and publish a Docker image
 
 on:
   push:
-    branches:
-      - "main"
+    branches: [main]
+    paths:
+      - "apps/hola-toledo/**"
     tags:
-      - "hola-toledo/v*"
-    path: "apps/hola-toledo/src/**"
+      - "hola-toledo-v*"
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
+  publish-image-hola-toledo:
+    name: Publish Docker image halo-toledo
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -26,21 +28,17 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get Git metadata
+      - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: |
-            ${{ env.REGISTRY }}/${{ github.actor }}/halo-toledo
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
             type=match,pattern=\d.\d.\d
-      - name: Publish image (Dagger)
-        uses: dagger/dagger-for-github@v5
+      - name: Build and push Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          verb: call
-          args: publish --username=${{ github.actor }} --password=env:GH_TOKEN --source=./src --image=hola-toledo:${{ steps.meta.outputs.version }}
-          workdir: apps/hola-toledo
-          version: "0.10.2"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          context: apps/hola-toledo
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
