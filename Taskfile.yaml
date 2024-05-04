@@ -12,27 +12,30 @@ tasks:
   bootstrap:
     desc: Bootstrap a kind cluster
     cmds:
-      - task: delete-cluster
-      - task: create-cluster
+      - task: create-kind-cluster
+      - task: install:cilium
+      - task: create-regcred
       - task: bootstrap-flux
 
-  create-cluster:
-    desc: Create a kind cluster
+  create-kind-cluster:
+    desc: Create a Kind cluster
     cmds:
+      - kind delete cluster --name toledo-local
       - kind create cluster --config kind-cluster-config.yaml --name toledo-local
       - kubectl cluster-info --context kind-toledo-local
+    dir: ./infra/kind
+
+  create-gke-cluster:
+    desc: Create a GKE cluster (Autopilot)
+    cmds:
+      - gcloud components install gke-gcloud-auth-plugin
+      - pulumi up -y
+    dir: ./infra/gke
 
   bootstrap-flux:
     desc: Bootstrap Flux for GitHub
-    deps: [
-        install:cilium,
-        install:flux,
-        install:kyverno,
-        # install:sealed-secret,
-      ]
+    deps: [install:flux]
     cmds:
-      # - task: configure-sealed-secrets
-      - task: create-regcred
       - |
         export GITHUB_TOKEN=$GH_TOKEN && \
         flux bootstrap --force github \
@@ -48,43 +51,15 @@ tasks:
     cmds:
       - helm repo add cilium https://helm.cilium.io/ --force-update
       - helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system
+    status:
+      - printenv PLATFORM | grep -w KIND
 
   install:flux:
     desc: Install Flux
     cmds:
       - kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
 
-  install:kyverno:
-    desc: Install & setup ClusterPolicy for regcred Secret
-    cmds:
-      - kubectl apply -f https://github.com/kyverno/kyverno/releases/download/v1.10.0/install.yaml --server-side=true
-      - kubectl apply -f ./k8s/infrastructure/configs/regcred.clusterpolicy.kyverno.yaml
-
-  install:sealed-secret:
-    desc: Install Kyverno
-    cmds:
-      - helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
-      - helm install sealed-secrets sealed-secrets/sealed-secrets --create-namespace --namespace sealed-secrets
-
-  delete-cluster:
-    desc: Delete a kind cluster
-    cmds:
-      - kind delete cluster --name toledo-local
-
   create-regcred:
     desc: Create a regcred secret
     cmds:
       - kubectl create secret docker-registry regcred --docker-server=$GH_REPO --docker-username=$GH_USER --docker-password=$GH_TOKEN --docker-email=$GH_EMAIL
-
-  # configure-sealed-secrets:
-  #   desc: Configure Sealed Secrets
-  #   cmds:
-  #     - openssl req -x509 -days 365 -nodes -newkey rsa:4096 -keyout "{{.PRIVATEKEY}}" -out "{{.PUBLICKEY}}" -subj "/CN=sealed-secret/O=sealed-secret"
-  #     - kubectl -n "{{.NAMESPACE}}" create secret tls "{{.SECRETNAME}}" --cert="{{.PUBLICKEY}}" --key="{{.PRIVATEKEY}}"
-  #     - kubectl -n "{{.NAMESPACE}}" label secret "{{.SECRETNAME}}" sealedsecrets.bitnami.com/sealed-secrets-key=active
-  #     - kubectl -n "{{.NAMESPACE}}" delete pod -l app.kubernetes.io/name=sealed-secrets
-  #   vars:
-  #     PRIVATEKEY: secrets/mytls.key
-  #     PUBLICKEY: secrets/mytls.crt
-  #     NAMESPACE: sealed-secrets
-  #     SECRETNAME: mycustomkeys

@@ -29,3 +29,4 @@ vendor/
 # OS specific hidden files
 DS_Store
 Thumbs.db  # For Windows
+node_modules

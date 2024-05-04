@@ -1,0 +1,7 @@
+name: toledo
+runtime: go
+description: A Go Pulumi program to manage infra for Toledo
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: go
