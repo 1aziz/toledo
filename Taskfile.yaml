@@ -9,15 +9,22 @@ tasks:
     cmds:
       - task -a
 
-  bootstrap:
+  kind:bootstrap:
     desc: Bootstrap a kind cluster
     cmds:
-      - task: create-kind-cluster
-      - task: install:cilium
-      - task: create-regcred
-      - task: bootstrap-flux
+      - task: kind:create
+      - task: apply:cilium
+      - task: apply:regcred
+      - task: bootstrap
 
-  create-kind-cluster:
+  gke:bootstrap:
+    desc: Bootstrap a GKE cluster
+    cmds:
+      - task: gke:create
+      - task: apply:regcred
+      - task: bootstrap
+
+  kind:create:
     desc: Create a Kind cluster
     cmds:
       - kind delete cluster --name toledo-local
@@ -25,39 +32,40 @@ tasks:
       - kubectl cluster-info --context kind-toledo-local
     dir: ./infra/kind
 
-  create-gke-cluster:
+  gke:create:
     desc: Create a GKE cluster (Autopilot)
     cmds:
+      - pulumi login file://./
       - gcloud components install gke-gcloud-auth-plugin
       - pulumi up -y
     dir: ./infra/gke
 
-  bootstrap-flux:
+  bootstrap:
     desc: Bootstrap Flux for GitHub
-    deps: [install:flux]
+    deps: [apply:flux]
     cmds:
       - |
         export GITHUB_TOKEN=$GH_TOKEN && \
         flux bootstrap --force github \
           --owner=$GH_USER \
-          --repository=toledo \
+          --repository=$GH_REPO \
           --branch=main \
-          --path=./k8s/clusters/kind \
+          --path=./k8s/clusters/$PLATFORM \
           --token=$GH_TOKEN \
           --personal
 
-  install:cilium:
+  apply:cilium:
     desc: Install Cilium
     cmds:
       - helm repo add cilium https://helm.cilium.io/ --force-update
       - helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system
 
-  install:flux:
+  apply:flux:
     desc: Install Flux
     cmds:
       - kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
 
-  create-regcred:
+  apply:regcred:
     desc: Create a regcred secret
     cmds:
-      - kubectl create secret docker-registry regcred --docker-server=$GH_REPO --docker-username=$GH_USER --docker-password=$GH_TOKEN --docker-email=$GH_EMAIL
+      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN

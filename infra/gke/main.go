@@ -1,12 +1,21 @@
 package main
 
 import (
-	"github.com/pulumi/pulumi-gcp/sdk/v7/go/gcp/container"
+	"encoding/base64"
+	"fmt"
+
+	kubernetes "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
+	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/core/v1"
+	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+
+	"github.com/pulumi/pulumi-gcp/sdk/v7/go/gcp/container"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 )
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
+		conf := config.New(ctx, "")
 
 		engineVersions, err := container.GetEngineVersions(ctx, &container.GetEngineVersionsArgs{})
 		if err != nil {
@@ -14,7 +23,7 @@ func main() {
 		}
 		masterVersion := engineVersions.LatestMasterVersion
 
-		cluster, err := container.NewCluster(ctx, "demo-cluster", &container.ClusterArgs{
+		cluster, err := container.NewCluster(ctx, "toledo", &container.ClusterArgs{
 			Location:           pulumi.String("europe-west3"),
 			EnableAutopilot:    pulumi.Bool(true),
 			Network:            pulumi.String("default"),
@@ -27,6 +36,40 @@ func main() {
 		}
 
 		ctx.Export("kubeconfig", generateKubeconfig(cluster.Endpoint, cluster.Name, cluster.MasterAuth))
+
+		k8sProvider, err := kubernetes.NewProvider(ctx, "k8sprovider", &kubernetes.ProviderArgs{
+			Kubeconfig: generateKubeconfig(cluster.Endpoint, cluster.Name, cluster.MasterAuth),
+		}, pulumi.DependsOn([]pulumi.Resource{cluster}))
+		if err != nil {
+			return err
+		}
+
+		gh_token := conf.RequireSecret("gh_token")
+		crDockerConfig := conf.RequireSecret("doToken").ApplyT(
+			func(token string) string {
+				return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(
+					"{\"auths\":{\"%s\":{\"auth\":\"%s\"}}}",
+					"crUrl",
+					base64.StdEncoding.EncodeToString([]byte(token+gh_token.ToStringOutput().ElementType().String())),
+				)))
+			},
+		).(pulumi.StringOutput)
+
+		_, err = corev1.NewSecret(ctx, "cr-secret",
+			&corev1.SecretArgs{
+				Metadata: &metav1.ObjectMetaArgs{
+					Name: pulumi.String("cr-secret"),
+				},
+				Data: pulumi.StringMap{
+					".dockerconfigjson": crDockerConfig,
+				},
+				Type: pulumi.String("kubernetes.io/dockerconfigjson"),
+			},
+			pulumi.Provider(k8sProvider),
+		)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})

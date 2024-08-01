@@ -30,3 +30,4 @@ vendor/
 DS_Store
 Thumbs.db  # For Windows
 node_modules
+.pulumi
