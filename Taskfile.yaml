@@ -1,29 +1,34 @@
 ---
 version: 3
 
+# Load environment variables from the .env file
 dotenv: [".env"]
 
 tasks:
+  # Default task to list all available tasks
   default:
     desc: List all tasks
     cmds:
       - task -a
 
+  # Bootstrap a Kind cluster
   kind:bootstrap:
-    desc: Bootstrap a kind cluster
+    desc: Bootstrap a Kind cluster with required components
     cmds:
       - task: kind:create
       - task: apply:cilium
       - task: apply:regcred
-      - task: bootstrap
+      - task: flux_bootstrap
 
+  # Bootstrap a GKE cluster
   gke:bootstrap:
-    desc: Bootstrap a GKE cluster
+    desc: Bootstrap a GKE cluster with required components
     cmds:
       - task: gke:create
       - task: apply:regcred
-      - task: bootstrap
+      - task: flux_bootstrap
 
+  # Create a Kind cluster
   kind:create:
     desc: Create a Kind cluster
     cmds:
@@ -32,6 +37,7 @@ tasks:
       - kubectl cluster-info --context kind-toledo-local
     dir: ./infra/kind
 
+  # Create a GKE cluster using Pulumi (Autopilot)
   gke:create:
     desc: Create a GKE cluster (Autopilot)
     cmds:
@@ -40,13 +46,15 @@ tasks:
       - pulumi up -y
     dir: ./infra/gke
 
-  bootstrap:
+  # Bootstrap Flux for GitHub integration
+  flux_bootstrap:
     desc: Bootstrap Flux for GitHub
-    deps: [apply:flux]
     cmds:
       - |
+        kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
         export GITHUB_TOKEN=$GH_TOKEN && \
-        flux bootstrap --force github \
+        flux bootstrap github \
+          --force \
           --owner=$GH_USER \
           --repository=$GH_REPO \
           --branch=main \
@@ -54,18 +62,15 @@ tasks:
           --token=$GH_TOKEN \
           --personal
 
+  # Install Cilium for network policies
   apply:cilium:
-    desc: Install Cilium
+    desc: Install Cilium for cluster networking
     cmds:
       - helm repo add cilium https://helm.cilium.io/ --force-update
-      - helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system
+      - helm install cilium cilium/cilium --version 1.16.5 --namespace kube-system
 
-  apply:flux:
-    desc: Install Flux
-    cmds:
-      - kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
-
+  # Create a Docker registry credential
   apply:regcred:
-    desc: Create a regcred secret
+    desc: Create a Docker registry credential secret
     cmds:
       - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN
