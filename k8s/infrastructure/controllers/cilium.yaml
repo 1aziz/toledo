@@ -24,3 +24,8 @@ spec:
         name: cilium
         namespace: kube-system
       interval: 12h
+  values:
+    image:
+      pullPolicy: IfNotPresent
+    ipam:
+      mode: kubernetes
