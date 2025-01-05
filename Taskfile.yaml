@@ -15,8 +15,6 @@ tasks:
   kind:bootstrap:
     desc: Bootstrap a Kind cluster with required components
     cmds:
-      - task: kind:create
-      - task: apply:cilium
       - task: apply:regcred
       - task: flux_bootstrap
 
@@ -73,4 +71,4 @@ tasks:
   apply:regcred:
     desc: Create a Docker registry credential secret
     cmds:
-      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN
+      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN --dry-run=client -oyaml | kubectl replace -f -
