@@ -4,6 +4,5 @@ kind: Kustomization
 resources:
   - cert-manager.yaml
   - ingress-nginx.yaml
-  - cilium.yaml
   - prometheus-stack.yaml
   - kyverno.yaml
