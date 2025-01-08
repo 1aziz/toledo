@@ -1,93 +1,72 @@
 # Toledo
 
-Toledo is a simple GitOps boilerplate designed to help you get started with configuring Kubernetes resources using GitOps practices. This repository provides sample Kubernetes configurations and includes a demo application, `halo-toledo`, for experimenting with core Cloud Native concepts and tools.
+Toledo is a simple GitOps boilerplate designed to help you get started with configuring Kubernetes resources using GitOps practices. This repository provides sample Kubernetes configurations and includes a demo application, `halo-toledo`, designed for experimenting with fundamental Cloud Native concepts and tools."
 
 ## Key Features
 
 - **Hands-on GitOps Learning**: Discover how to automate deployments and manage Kubernetes cluster configurations using **Flux**.
-- **Networking Exploration**: Experiment with advanced Kubernetes networking concepts using **Cilium**, including service discovery, load balancing, and service mesh functionality.
 - **Task Automation**: Simplify cluster bootstrapping with **Taskfile**, a task runner that standardizes and automates common setup processes.
+
+### Included Tools and Technologies
+
+1. **Flux**
+   Master GitOps by automating deployments and managing your Kubernetes cluster configuration directly from a Git repository.
+
+2. **Taskfile**
+   Simplify cluster bootstrapping and streamline repetitive tasks with predefined commands. In future, we can add more tasks, for example to support new types of clusters.
 
 ## Who Is This For?
 
 This repository is ideal for:
 
 - Beginners to GitOps and Kubernetes who want a practical, hands-on playground.
-- Developers exploring Kubernetes networking and Cloud Native tools.
-- Teams looking for a starting point to integrate GitOps practices into their workflows.
-
-## Included Tools and Technologies
-
-1. **Cilium**
-   Delve into service mesh capabilities, such as:
-
-   - Service discovery
-   - Load balancing
-   - Advanced networking
-
-2. **Flux**
-   Master GitOps by automating deployments and managing your Kubernetes cluster configuration directly from a Git repository.
-
-3. **Taskfile**
-   Simplify and streamline cluster bootstrapping and other repetitive tasks with predefined commands.
-
-## Benefits of Using Toledo
-
-By working through this repository, you will:
-
-- Gain practical experience with GitOps workflows and tooling.
-- Understand Kubernetes networking fundamentals.
-- Learn how to set up and manage a Cloud Native environment efficiently.
-
-## Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/1aziz/toledo.git
-   ```
-2. Install the required tools (e.g., Flux, Cilium, Taskfile).
-3. Follow the provided instructions in the respective directories to set up your Kubernetes cluster and start experimenting.
+- Those exploring Kubernetes networking and Cloud Native tools.
+- Those looking for a starting point to integrate GitOps practices into their workflows.
 
 ## Get Started (Local)
 
-### 1. Bootstrap the Cluster
+### Prerequisites
 
-To set up and configure a local Kubernetes cluster, follow these steps:
+Before you proceed with the steps below, ensure you have the following tools installed and configured on your system:
 
-1. **Install `Taskfile`**:
-   [`Taskfile`](https://taskfile.dev/) is required for automating cluster setup. Install it before proceeding.
+1. **Flux CD**
 
-2. **Run the Bootstrap Command**:
-   Execute the following command to bootstrap a new local cluster:
+   - Flux is a set of continuous and progressive delivery solutions for Kubernetes.
+   - [Installation Guide](https://fluxcd.io/docs/installation/)
 
-   ```sh
-   task kind:bootstrap
-   ```
+2. **Taskfile**
 
-This command performs the following actions:
+   - A task runner, like `make`, for easily managing and automating commands.
+   - [Installation Guide](https://taskfile.dev/#/installation)
+
+3. **Kind**
+   - Kind (Kubernetes IN Docker) is a tool for running local Kubernetes clusters using Docker.
+   - [Installation Guide](https://kind.sigs.k8s.io/docs/user/quick-start/)
+
+### Bootstrap the Cluster
+
+To set up and configure a _local_ Kubernetes cluster, run the bootstrap script `sh bootstrap` and follow the steps!
+
+This command performs the following actions listed in the `Taskfile`:
 
 ```
 kind:bootstrap
 ├── kind:create
 │   ├── Deletes an existing Kind cluster (`toledo-local`) if it exists
 │   ├── Creates a new Kind cluster using `kind-cluster-config.yaml`
-│   └── Verifies that the cluster context is set correctly
-├── apply:cilium
-│   ├── Adds the Cilium Helm repository
-│   └── Installs the Cilium networking plugin (version 1.16.5) into the cluster
-├── apply:regcred
+│   ├── Verifies that the cluster context is set correctly
 │   └── Creates a Docker registry credential secret (`regcred`) for pulling images
 └── bootstrap
     └── Configures Flux for GitHub:
         │── Installs Flux CD into the cluster
-        ├── Authenticates using `GITHUB_TOKEN`
+        ├── Authenticates with `GITHUB_TOKEN`
         ├── Configures Flux to sync from a GitHub repository
-        └── Uses specified branch, repository, and cluster configuration path
+        └── Uses the specified branch, repository, and cluster configuration path
 ```
 
-### 2. Explore the Repository
+## Explore the Repository
 
-#### **`halo-toledo` Demo App**
+### **`halo-toledo` Demo App**
 
 - **Location**:
 
@@ -98,9 +77,9 @@ kind:bootstrap
   - Review the app's source code and deployment configurations to understand how applications are deployed using GitOps.
   - Experiment with deploying and updating the app within your local cluster.
 
-#### **Bring Your Own Applications**
+### **Bring Your Own Applications**
 
-This repository is designed to be extended with your own applications.
+This repository is designed to be extended with your own applications. You can fork the repo and tailor it to your specific learning or project need (e.g. to build a home lab).
 
 - **Steps**:
 
@@ -112,11 +91,6 @@ This repository is designed to be extended with your own applications.
      ├── src    # Application source code
      └── deploy # Kubernetes deployment configurations (e.g., Deployments, Services)
      ```
-
-- **Benefits**:
-  - Practice deploying real-world applications using GitOps principles.
-  - Experiment with custom configurations and tools in a Cloud Native environment.
-  - Tailor the repository to your specific learning or project needs.
 
 ## GitOps
 
@@ -130,7 +104,6 @@ Flux is configured to manage two primary types of resources:
 
    - Includes cluster-wide resources such as:
      - **cert-manager**: For managing SSL/TLS certificates.
-     - **Cilium**: For advanced Kubernetes networking and service mesh capabilities.
      - **ingress-nginx**: For handling HTTP and HTTPS traffic to cluster workloads.
 
 2. **Applications**:

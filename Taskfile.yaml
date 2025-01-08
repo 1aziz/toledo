@@ -16,6 +16,7 @@ tasks:
     desc: Bootstrap a Kind cluster with required components
     cmds:
       - task: kind:create
+      - task: apply:regcred
       - task: flux_bootstrap
 
   # Create a Kind cluster
@@ -25,7 +26,6 @@ tasks:
       - kind delete cluster --name toledo-local
       - kind create cluster --config kind-cluster-config.yaml --name toledo-local
       - kubectl cluster-info --context kind-toledo-local
-      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN --dry-run=client -oyaml | kubectl apply -f -
     dir: ./infra/kind
 
   # Bootstrap Flux for GitHub integration
@@ -42,3 +42,9 @@ tasks:
           --path=./k8s/clusters/$PLATFORM \
           --token=$GH_TOKEN \
           --personal
+
+  # Create a Docker registry credential
+  apply:regcred:
+    desc: Create a Docker registry credential secret
+    cmds:
+      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN --dry-run=client -oyaml | kubectl apply -f -

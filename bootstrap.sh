@@ -20,14 +20,9 @@ check_and_export_variable "PLATFORM"
 if [ $PLATFORM == 'kind' ]; then
   gum confirm "Any existing kind cluster with name 'toledo-local' will be deleted, are you sure?" || exit 1
   gum spin -s moon --title "Creating the local cluster 'toledo-local' with $(gum style --foreground '#04B575' 'Kind').." --show-error -- task kind:create
-  gum spin -s moon --title "Applying $(gum style --foreground '#04B575' 'Cilium').." --show-error -- task apply:cilium
-fi
-
-if [ $PLATFORM == 'gke' ]; then
-  gum spin -s moon --title "Creating the $(gum style --foreground '#04B575' 'GKE (Autopilot)') cluster 'toledo'.." --show-error -- task gke:create
 fi
 
 gum spin -s moon --title "Appling default $(gum style --foreground '#04B575' 'regcred').." --show-error -- task apply:regcred
-gum spin -s moon --title "Bootstapping the cluster with $(gum style --foreground '#04B575' 'Flux').." --show-error -- task bootstrap
+gum spin -s moon --title "Bootstapping the cluster with $(gum style --foreground '#04B575' 'Flux').." --show-error -- task flux_bootstrap
 
 test $? -ne 0 || echo "$(gum style --foreground '#FFFF00' 'Your cluster is bootstrapped! :tada: :rocket:')" | gum format -t emoji
