@@ -15,15 +15,7 @@ tasks:
   kind:bootstrap:
     desc: Bootstrap a Kind cluster with required components
     cmds:
-      - task: apply:regcred
-      - task: flux_bootstrap
-
-  # Bootstrap a GKE cluster
-  gke:bootstrap:
-    desc: Bootstrap a GKE cluster with required components
-    cmds:
-      - task: gke:create
-      - task: apply:regcred
+      - task: kind:create
       - task: flux_bootstrap
 
   # Create a Kind cluster
@@ -33,42 +25,20 @@ tasks:
       - kind delete cluster --name toledo-local
       - kind create cluster --config kind-cluster-config.yaml --name toledo-local
       - kubectl cluster-info --context kind-toledo-local
+      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN --dry-run=client -oyaml | kubectl apply -f -
     dir: ./infra/kind
-
-  # Create a GKE cluster using Pulumi (Autopilot)
-  gke:create:
-    desc: Create a GKE cluster (Autopilot)
-    cmds:
-      - pulumi login file://./
-      - gcloud components install gke-gcloud-auth-plugin
-      - pulumi up -y
-    dir: ./infra/gke
 
   # Bootstrap Flux for GitHub integration
   flux_bootstrap:
     desc: Bootstrap Flux for GitHub
     cmds:
       - |
-        kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
+        flux install
         export GITHUB_TOKEN=$GH_TOKEN && \
         flux bootstrap github \
-          --force \
           --owner=$GH_USER \
           --repository=$GH_REPO \
           --branch=main \
           --path=./k8s/clusters/$PLATFORM \
           --token=$GH_TOKEN \
           --personal
-
-  # Install Cilium for network policies
-  apply:cilium:
-    desc: Install Cilium for cluster networking
-    cmds:
-      - helm repo add cilium https://helm.cilium.io/ --force-update
-      - helm install cilium cilium/cilium --version 1.16.5 --namespace kube-system --set image.pullPolicy=IfNotPresent --set ipam.mode=kubernetes
-
-  # Create a Docker registry credential
-  apply:regcred:
-    desc: Create a Docker registry credential secret
-    cmds:
-      - kubectl create secret docker-registry regcred --docker-server=ghcr.io/$GH_USER --docker-username=$GH_USER --docker-password=$GH_TOKEN --dry-run=client -oyaml | kubectl replace -f -
