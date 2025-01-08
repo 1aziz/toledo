@@ -23,29 +23,20 @@ This repository is ideal for:
 - Those exploring Kubernetes networking and Cloud Native tools.
 - Those looking for a starting point to integrate GitOps practices into their workflows.
 
-## Get Started (Local)
+## Get Started (Local installation with Kind)
 
-### Prerequisites
+> [!IMPORTANT]
+> Before you proceed with the steps below, ensure you have the following tools installed and configured on your machine:
+> - [Gum](https://github.com/charmbracelet/gum),
+> - [Flux CD](https://fluxcd.io/docs/installation/),
+> - [Taskfile](https://taskfile.dev/#/installation)
+> - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/)
 
-Before you proceed with the steps below, ensure you have the following tools installed and configured on your system:
-
-1. **Flux CD**
-
-   - Flux is a set of continuous and progressive delivery solutions for Kubernetes.
-   - [Installation Guide](https://fluxcd.io/docs/installation/)
-
-2. **Taskfile**
-
-   - A task runner, like `make`, for easily managing and automating commands.
-   - [Installation Guide](https://taskfile.dev/#/installation)
-
-3. **Kind**
-   - Kind (Kubernetes IN Docker) is a tool for running local Kubernetes clusters using Docker.
-   - [Installation Guide](https://kind.sigs.k8s.io/docs/user/quick-start/)
+In the future, we can simplify the prerequisites by incorporating the installation of the Flux CD CLI and Kind directly into the Taskfile.
 
 ### Bootstrap the Cluster
 
-To set up and configure a _local_ Kubernetes cluster, run the bootstrap script `sh bootstrap` and follow the steps!
+To set up and configure a _local_ Kubernetes cluster, run the bootstrap script `sh bootstrap` and follow the steps in terminal.
 
 This command performs the following actions listed in the `Taskfile`:
 
@@ -63,34 +54,6 @@ kind:bootstrap
         ├── Configures Flux to sync from a GitHub repository
         └── Uses the specified branch, repository, and cluster configuration path
 ```
-
-## Explore the Repository
-
-### **`halo-toledo` Demo App**
-
-- **Location**:
-
-  - Source code: `./halo-toledo/src`
-  - Kubernetes configurations: `./halo-toledo/deploy`
-
-- **What to Do**:
-  - Review the app's source code and deployment configurations to understand how applications are deployed using GitOps.
-  - Experiment with deploying and updating the app within your local cluster.
-
-### **Bring Your Own Applications**
-
-This repository is designed to be extended with your own applications. You can fork the repo and tailor it to your specific learning or project need (e.g. to build a home lab).
-
-- **Steps**:
-
-  1. Create a new directory under the `./apps` folder:
-     Example: `./apps/my-new-app`
-  2. Inside your new app directory, create the following structure:
-     ```
-     ./apps/my-new-app
-     ├── src    # Application source code
-     └── deploy # Kubernetes deployment configurations (e.g., Deployments, Services)
-     ```
 
 ## GitOps
 
@@ -115,9 +78,39 @@ Flux is configured to manage two primary types of resources:
 
 ### Configuration Location
 
-All configuration files are organized under the `./k8s` directory:
+The configuration files are structured under the `./k8s` directory for better organization and manageability:
 
-- **Infrastructure configurations**: Define cluster-level tools and services.
-- **Application configurations**: Define workload deployments and their supporting resources.
+- **Infrastructure Configurations**: These files define cluster-level tools and services, such as monitoring, networking, and security.
+- **Application Configurations**: These files define workload deployments, including application services and their supporting resources like ConfigMaps and Secrets.
 
-By maintaining these configurations in Git, Flux ensures a reliable, version-controlled, and auditable process for managing your Kubernetes cluster.
+### Adding New Applications
+
+The `halo-toledo` application, which uses an image stored on GitHub Packages, serves as an example of how to configure new applications. 
+
+- **Source Code**: Located at `./apps/halo-toledo/src`.
+- **Kubernetes Manifests**: Found under `./apps/halo-toledo/deploy`.
+- **Kustomization**: Available in `k8s/apps/toledo`.
+
+You can follow a similar approach to add your own applications. Below are the steps:
+
+#### Steps to Add a New Application:
+
+1. **Create a Directory**  
+   Create a new directory under the `./apps` folder.  
+   Example: `./apps/my-new-app`
+
+2. **Set Up Directory Structure**  
+   Inside your new application directory, organize the following structure:
+   ```
+   ./apps/my-new-app
+      ├── src # Application source code
+      └── deploy # Kubernetes deployment configurations (e.g., Deployment, Service)
+   ```
+
+4. **Prepare Kubernetes Manifests**  
+- Ensure your application manifests and container image are ready.
+- Configure the cluster with an appropriate image pull secret to fetch your application's image.
+
+4. **Add `Kustomization`**  
+Create a new directory under the `./k8s/apps` folder to store your app’s `Kustomization` file.  
+Example: Refer to `k8s/apps/toledo` for guidance.
