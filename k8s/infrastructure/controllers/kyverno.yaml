@@ -29,17 +29,17 @@ spec:
         name: kyverno
         namespace: kube-system
       interval: 12h
-      values:
-        admissionController:
-          replicas: 3
-          rbac:
-            clusterRole:
-              extraResources:
-                - apiGroups:
-                    - ""
-                  resources:
-                    - pods
-                  verbs:
-                    - create
-                    - update
-                    - delete
+  values:
+    admissionController:
+      replicas: 3
+      rbac:
+        clusterRole:
+          extraResources:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - create
+                - update
+                - delete
